@@ -29,6 +29,7 @@ export class BookmarkService {
                         {
                             description:{contains:search}
                         }
+
                     ]
                 },
                 skip:0,
