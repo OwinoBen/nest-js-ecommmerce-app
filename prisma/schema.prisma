@@ -22,7 +22,11 @@ model User {
   firstname String?
   lastname String?
 
+  isActive Boolean @default(true)
+  is_admin Boolean @default(false)
+  is_super_user Boolean @default(false)
   bookmarks Bookmark[] // for creating relationships
+  category Category[]
 
   @@map("users")
   
@@ -41,4 +45,54 @@ model Bookmark {
   user User @relation(fields: [userId], references: [id])
 
   @@map("bookmarks")
+}
+
+model Category{
+  id Int @id @default(autoincrement())
+  category_id String? @default(uuid()) @unique
+  name String
+  verified Boolean @default(true)
+  date_created DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  created_by Int?
+  user User? @relation(fields: [created_by], references: [id])
+
+  product Product[]
+  @@map("categories")
+
+}
+
+model Product{
+  id Int @id @default(autoincrement())
+  product_title String
+  slug String @unique
+  sku String
+  product_gallery String
+  product_qty Int
+  selling_price Float
+  discount_price Float
+  description String
+  specification String
+  verfied Boolean
+  category_id Int
+  date_created DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  category Category @relation(fields: [category_id], references: [id])
+
+  productGallery ProductGallery[]
+
+  @@map("products")
+}
+
+model ProductGallery{
+  id Int @id @default(autoincrement())
+  image String
+  product_id Int
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@map("productGallery")
 }
