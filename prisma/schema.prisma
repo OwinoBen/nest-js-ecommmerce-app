@@ -48,8 +48,8 @@ model Bookmark {
 }
 
 model Category{
-  id Int @id @default(autoincrement())
-  category_id String? @default(uuid()) @unique
+  // id Int @id @default(autoincrement())
+  category_id String @id @default(uuid()) @unique 
   name String
   verified Boolean @default(true)
   date_created DateTime @default(now())
@@ -64,35 +64,34 @@ model Category{
 }
 
 model Product{
-  id Int @id @default(autoincrement())
+  id String @id @default(uuid())
   product_title String
   slug String @unique
   sku String
-  product_gallery String
-  product_qty Int
-  selling_price Float
-  discount_price Float
+  product_gallery ProductGallery[]
+  // product_qty String @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  product_qty Int 
+  selling_price Int
+  discount_price Int
   description String
   specification String
-  verfied Boolean
-  category_id Int
+  verfied Boolean @default(false)
+  category_id String
   date_created DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  category Category @relation(fields: [category_id], references: [id])
-
-  productGallery ProductGallery[]
+  category Category @relation(fields: [category_id], references: [category_id])
 
   @@map("products")
 }
 
 model ProductGallery{
   id Int @id @default(autoincrement())
-  image String
-  product_id Int
+  images String[]
+  product_id String
   createdAt DateTime @default(now())
 
-  product Product @relation(fields: [product_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id], onDelete: Cascade) 
 
   @@map("productGallery")
 }

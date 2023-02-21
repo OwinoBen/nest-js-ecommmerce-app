@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
-import { AuthDto } from "./dto";
+import { AuthDto, AuthLoginDto } from "./dto";
 
 import * as argon from 'argon2' // for encryption better option than bcrypt
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
@@ -22,7 +22,11 @@ export class AuthService{
             const user = await this.prisma.user.create({
                 data:{
                     email:dto.email,
-                    hash
+                    firstname:dto.firstname,
+                    lastname:dto.lastname,
+                    hash,
+                    is_admin:dto.is_admin,
+                    is_super_user:dto.is_super_user
                 },
                 // select:{
                 //     id:true,
@@ -44,7 +48,7 @@ export class AuthService{
         
     }
 
-    async signIn(dto:AuthDto){
+    async signIn(dto:AuthLoginDto){
         //find the user by email
         const user = await this.prisma.user.findUnique({
             where:{
@@ -56,17 +60,21 @@ export class AuthService{
             throw new ForbiddenException(
                 'Invalid login credentials'
             )
-        }
-        //compare passwords
-        const matchPssword = await argon.verify(user.hash, dto.password)
-        //if password is incoorect throw exception
-        if(!matchPssword){
-            throw new ForbiddenException(
-                'Invalid login credentials'
-            )
-        }
+        }else if(!user.isActive){
+            throw new ForbiddenException('Account is not active. Please contact the service admin to activate your account')
+        }else{
 
-        return this.signToken(user.id, user.email)
+            //compare passwords
+            const matchPssword = await argon.verify(user.hash, dto.password)
+            //if password is incoorect throw exception
+            if(!matchPssword){
+                throw new ForbiddenException(
+                    'Invalid login credentials'
+                )
+            }
+    
+            return this.signToken(user.id, user.email)
+        }
     }
 
     async signToken(userId: number, email:string) : Promise<{ 

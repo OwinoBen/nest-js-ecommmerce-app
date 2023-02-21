@@ -10,12 +10,24 @@ export class CategoryService {
     constructor(private prisma: PrismaService){}
 
     async addCategory(created_by:number, dto: AddCategoryDto){
-        return await this.prisma.category.create({
-            data:{
-                created_by,
-                ...dto
+        const user = await this.prisma.user.findUnique({
+            where:{
+                id:created_by
             }
         })
+
+        if(!user){
+            throw new ForbiddenException('Access denied!')
+        }else if(!user.is_admin || !user.is_super_user || !user.isActive){
+            throw new ForbiddenException('Permision denied. Contact system adim for more information')
+        }else{
+            return await this.prisma.category.create({
+                data:{
+                    created_by,
+                    ...dto
+                }
+            })
+        }
 
     }
 
@@ -35,7 +47,7 @@ export class CategoryService {
                 },
                 skip: 0,
                 take: query.limit || 10,
-                orderBy: {id:'desc'}
+                orderBy: {category_id:'desc'}
             }),
 
             this.prisma.category.count(),
@@ -58,9 +70,13 @@ export class CategoryService {
                         search: search
                     }
                 }
-                if(paginatedResults.data.length > 0)
-                    delete paginatedResults.data[0].id
+                // if(paginatedResults.data.length > 0){
+
+                //     delete paginatedResults.data[0].id
+                // }else{
+
                     return paginatedResults;
+                
             }) 
         )
     }
@@ -72,8 +88,8 @@ export class CategoryService {
             }
         });
         if(!user){
-            throw new ForbiddenException('Something went wrong')
-        }else if(user.is_admin != true || user.is_super_user != true){
+            throw new ForbiddenException('Access denied!')
+        }else if(!user.is_admin || !user.isActive){
             throw new ForbiddenException('You do not have permision to edit this category. Contact the system admin for more information')
         }else{
             //check if the category id is presentt
@@ -107,8 +123,8 @@ export class CategoryService {
         });
 
         if(!user){
-            throw new ForbiddenException('Something went wrong')
-        }else if(user.is_admin != true || user.is_super_user != true){
+            throw new ForbiddenException('Access denied!')
+        }else if(!user.is_admin || !user.is_super_user || !user.isActive ){
             throw new ForbiddenException('Permision denied. Please contact the syetm admin')
         }else{
             const cate = await this.prisma.category.findUnique({
@@ -129,7 +145,7 @@ export class CategoryService {
                 
                 if(res){
                     throw new ForbiddenException({
-                        statusCode:204,
+                        statusCode:HttpStatus.NO_CONTENT,
                         message:"Category deleted successfully",
                         success: 1
                     })
