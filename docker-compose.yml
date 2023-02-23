@@ -1,24 +1,63 @@
+# version: '3.8'
+# services:
+#   dev-db:
+#     image: postgres:13
+#     ports:
+#         - 5434:5432
+#     environment: 
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: 123
+#       POSTGRES_DB: nest
+#     networks:
+#       - freecodecamp
+#   test-db:
+#     image: postgres:13
+#     ports:
+#         - 5434:5432
+#     environment: 
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: 123
+#       POSTGRES_DB: nest
+#     networks:
+#       - freecodecamp
+# networks:
+#     freecodecamp:
+
+
 version: '3.8'
 services:
-  dev-db:
-    image: postgres:13
+  nestjs-app:
+    container_name: nestjs-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-        - 5434:5432
+      - 8080:3000
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    restart: always
+    ports:
+      - 5434:5432
     environment: 
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: nest
     networks:
       - freecodecamp
-  test-db:
-    image: postgres:13
-    ports:
-        - 5434:5432
-    environment: 
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 123
-      POSTGRES_DB: nest
-    networks:
-      - freecodecamp
+    env_file:
+      - .env
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+    name: prod-db
+
 networks:
     freecodecamp:

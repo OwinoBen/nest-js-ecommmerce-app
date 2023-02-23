@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, FileTypeValidator, Get, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, ParseFilePipeBuilder, ParseUUIDPipe, Patch, Post, Query, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, FileTypeValidator, Get, HttpCode, HttpStatus, MaxFileSizeValidator, Param, ParseFilePipe, ParseFilePipeBuilder, ParseUUIDPipe, Patch, Post, Query, UploadedFiles, UseGuards, UseInterceptors, Version } from '@nestjs/common';
 import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { diskStorage } from 'multer';
@@ -13,7 +13,7 @@ import { ProductsService } from './products.service';
 @Controller('products')
 export class ProductsController {
     constructor(private productService: ProductsService){}
-
+    @Version('1')
     @Post('add')
     @UseInterceptors(FilesInterceptor('files', 5,{
         storage: diskStorage({
@@ -41,6 +41,7 @@ export class ProductsController {
         return this.productService.addProducts(dto,userId, productImage)
     }
 
+    @Version('1')
     @Get()
     getAllProducts(
         @Query('page') page: number = 1,
@@ -52,16 +53,20 @@ export class ProductsController {
         return this.productService.getAllProducts({page:Number(page), limit:Number(limit), path: 'http://localhost:6000/products'}, search, userId)
     }
 
+    @Version('1')
     @Get(':productId')
     getProductById(@GetUser('id') userId: number, @Param('productId') productId:string){
         return this.productService.getProductById(userId, productId)
     }
 
+    @Version('1')
     @Patch('edit/:productId')
     editProduct(@GetUser('id') userId: number, @Body() dto: UpdateProductDto, @Param('productId') productId: string){
         return this.productService.editProduct(userId, productId, dto)
     }
 
+    @HttpCode(HttpStatus.NO_CONTENT)
+    @Version('1')
     @Delete('remove/:productId')
     deleteProductById(@GetUser('id') userId: number, @Param('productId', ParseUUIDPipe) productId: string){
         return this.productService.deleteProductById(userId, productId)
